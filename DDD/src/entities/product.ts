@@ -1,20 +1,24 @@
-export default class Product {
+export default class Product 
+{
     private _id: string;
     private _name: string;
     private _price: number;
 
-    constructor(id: string, name:string, price: number){
+    constructor(id: string, name:string, price: number)
+    {
         this._id = id
         this._name = name
         this._price = price;
         this.validate();
     }
 
-    get name(){
+    get name()
+    {
         return this._name;
     }
 
-    get price(){
+    get price()
+    {
         return this._price;
     }
 
@@ -35,12 +39,14 @@ export default class Product {
         return true;
     }
 
-    changeName(name: string){
+    changeName(name: string)
+    {
         this._name = name;
         this.validate();
     }
 
-    changePrice(price: number){
+    changePrice(price: number)
+    {
         this._price = price;
         this.validate();
     }
