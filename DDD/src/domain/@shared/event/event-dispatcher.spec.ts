@@ -22,7 +22,7 @@ describe('Domain events tests', () => {
         ).toMatchObject(eventHandler);
     });
 
-    it('should unregister an even handler', () => {
+    it('should unregister an event handler', () => {
         const eventDispatcher = new EventDispatcher();
         const eventHandler = new SendEmailWhenProductIsCreatedHandler();
         eventDispatcher.register('ProductCreatedEvent', eventHandler);

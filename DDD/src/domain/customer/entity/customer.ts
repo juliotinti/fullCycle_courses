@@ -1,3 +1,10 @@
+import EventDispatcher from '../../@shared/event/event-dispatcher';
+import { EventDispatcherInterface } from '../../@shared/event/event-dispatcher.interface';
+import { CustomerChangedAddressEvent } from '../event/customerChangeAddress.event';
+import CustomerCreatedEvent from '../event/customerCreated.event';
+import { ChangeCustomerEmailHandler } from '../event/handler/changeCustomerEmailHandler';
+import { CreateCustomerLog1Handler } from '../event/handler/createCustomerLog1Handler';
+import { CreateCustomerLog2Handler } from '../event/handler/createCustomerLog2Handler';
 import Address from '../value-object/address';
 
 export default class Customer {
@@ -6,11 +13,15 @@ export default class Customer {
     private _address!: Address;
     private _active: boolean = false;
     private _rewardPoints: number = 0;
+    eventDispatcher: EventDispatcherInterface = new EventDispatcher();
 
     constructor(id: string, name: string) {
         this._id = id;
         this._name = name;
         this.validate();
+        this.eventDispatcher.register("CustomerCreatedEvent", new CreateCustomerLog1Handler);
+        this.eventDispatcher.register("CustomerCreatedEvent", new CreateCustomerLog2Handler);
+        this.eventDispatcher.notify(new CustomerCreatedEvent(this.id))
     }
 
     get name(): string {
@@ -67,5 +78,7 @@ export default class Customer {
 
     changeAddress(address: Address): void {
         this._address = address;
+        this.eventDispatcher.register("CustomerChangedAddressEvent", new ChangeCustomerEmailHandler)
+        this.eventDispatcher.notify(new CustomerChangedAddressEvent(this));
     }
 }
