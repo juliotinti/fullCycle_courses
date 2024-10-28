@@ -12,11 +12,11 @@ describe('Customer unit tests', () => {
         const customer = new Customer('1', 'John');
 
         expect(customer.eventDispatcher.register).toHaveBeenCalledWith(
-            'CustomerCreatedEvent',
+            'CustomerCreatedEvent1',
             expect.any(CreateCustomerLog1Handler)
         );
         expect(customer.eventDispatcher.register).toHaveBeenCalledWith(
-            'CustomerCreatedEvent',
+            'CustomerCreatedEvent2',
             expect.any(CreateCustomerLog2Handler)
         );
     });
@@ -27,7 +27,7 @@ describe('Customer unit tests', () => {
         customer.changeAddress(address);
 
         expect(customer.eventDispatcher.register).toHaveBeenCalledWith(
-            'CustomerChangedAddressEvent',
+            'CustomerChangeAddressEvent',
             new ChangeCustomerEmailHandler()
         );
     });

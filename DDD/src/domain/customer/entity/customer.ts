@@ -20,11 +20,11 @@ export default class Customer {
         this._name = name;
         this.validate();
         this.eventDispatcher.register(
-            'CustomerCreatedEvent',
+            'CustomerCreatedEvent1',
             new CreateCustomerLog1Handler()
         );
         this.eventDispatcher.register(
-            'CustomerCreatedEvent',
+            'CustomerCreatedEvent2',
             new CreateCustomerLog2Handler()
         );
         this.eventDispatcher.notify(new CustomerCreatedEvent(this.id));
@@ -85,7 +85,7 @@ export default class Customer {
     changeAddress(address: Address): void {
         this._address = address;
         this.eventDispatcher.register(
-            'CustomerChangedAddressEvent',
+            'CustomerChangeAddressEvent',
             new ChangeCustomerEmailHandler()
         );
         this.eventDispatcher.notify(new CustomerChangedAddressEvent(this));
