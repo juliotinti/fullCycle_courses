@@ -19,9 +19,15 @@ export default class Customer {
         this._id = id;
         this._name = name;
         this.validate();
-        this.eventDispatcher.register("CustomerCreatedEvent", new CreateCustomerLog1Handler);
-        this.eventDispatcher.register("CustomerCreatedEvent", new CreateCustomerLog2Handler);
-        this.eventDispatcher.notify(new CustomerCreatedEvent(this.id))
+        this.eventDispatcher.register(
+            'CustomerCreatedEvent',
+            new CreateCustomerLog1Handler()
+        );
+        this.eventDispatcher.register(
+            'CustomerCreatedEvent',
+            new CreateCustomerLog2Handler()
+        );
+        this.eventDispatcher.notify(new CustomerCreatedEvent(this.id));
     }
 
     get name(): string {
@@ -78,7 +84,10 @@ export default class Customer {
 
     changeAddress(address: Address): void {
         this._address = address;
-        this.eventDispatcher.register("CustomerChangedAddressEvent", new ChangeCustomerEmailHandler)
+        this.eventDispatcher.register(
+            'CustomerChangedAddressEvent',
+            new ChangeCustomerEmailHandler()
+        );
         this.eventDispatcher.notify(new CustomerChangedAddressEvent(this));
     }
 }
