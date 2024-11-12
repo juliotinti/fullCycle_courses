@@ -1,4 +1,4 @@
-package app
+package application
 
 import (
 	"errors"
@@ -7,14 +7,19 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+func init() {
+	govalidator.SetFieldsRequiredByDefault(true)
+}
+
 type ProductInterface interface {
 	IsValid() (bool, error)
 	Enable() error
 	Disable() error
-	GetId() string
+	GetID() string
 	GetName() string
 	GetStatus() string
 	GetPrice() float64
+	ChangePrice(price float64) error
 }
 
 type ProductServiceInterface interface {
@@ -35,10 +40,6 @@ type ProductWriter interface {
 type ProductPersistenceInterface interface {
 	ProductReader
 	ProductWriter
-}
-
-func init() {
-	govalidator.SetFieldsRequiredByDefault(true)
 }
 
 const (
@@ -65,6 +66,7 @@ func (p *Product) IsValid() (bool, error) {
 	if p.Status == "" {
 		p.Status = DISABLED
 	}
+
 	if p.Status != ENABLED && p.Status != DISABLED {
 		return false, errors.New("the status must be enabled or disabled")
 	}
@@ -78,7 +80,6 @@ func (p *Product) IsValid() (bool, error) {
 		return false, err
 	}
 	return true, nil
-
 }
 
 func (p *Product) Enable() error {
@@ -89,6 +90,18 @@ func (p *Product) Enable() error {
 	return errors.New("the price must be greater than zero to enable the product")
 }
 
+func (p *Product) ChangePrice(price float64) error {
+	if p.Price < 0 {
+		return errors.New("price only accept positive numbers")
+	}
+	p.Price = price
+	_, err := p.IsValid()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (p *Product) Disable() error {
 	if p.Price == 0 {
 		p.Status = DISABLED
@@ -97,7 +110,7 @@ func (p *Product) Disable() error {
 	return errors.New("the price must be zero in order to have the product disabled")
 }
 
-func (p *Product) GetId() string {
+func (p *Product) GetID() string {
 	return p.ID
 }
 
