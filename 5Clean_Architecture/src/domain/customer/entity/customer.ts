@@ -1,5 +1,7 @@
+import Entity from '../../@shared/entity/entity.abstract';
 import EventDispatcher from '../../@shared/event/event-dispatcher';
 import { EventDispatcherInterface } from '../../@shared/event/event-dispatcher.interface';
+import NotificationError from '../../@shared/notification/notification.error';
 import { CustomerChangedAddressEvent } from '../event/customerChangeAddress.event';
 import CustomerCreatedEvent from '../event/customerCreated.event';
 import { ChangeCustomerEmailHandler } from '../event/handler/changeCustomerEmailHandler';
@@ -7,8 +9,7 @@ import { CreateCustomerLog1Handler } from '../event/handler/createCustomerLog1Ha
 import { CreateCustomerLog2Handler } from '../event/handler/createCustomerLog2Handler';
 import Address from '../value-object/address';
 
-export default class Customer {
-    private _id: string;
+export default class Customer extends Entity {
     private _name: string;
     private _address!: Address;
     private _active: boolean = false;
@@ -16,9 +17,15 @@ export default class Customer {
     eventDispatcher: EventDispatcherInterface = new EventDispatcher();
 
     constructor(id: string, name: string) {
+        super();
         this._id = id;
         this._name = name;
         this.validate();
+
+        if (this.notification.hasErrors()) {
+            throw new NotificationError(this.notification.getErrors());
+        }
+
         this.eventDispatcher.register(
             'CustomerCreatedEvent',
             new CreateCustomerLog1Handler()
@@ -32,10 +39,6 @@ export default class Customer {
 
     get name(): string {
         return this._name;
-    }
-
-    get id(): string {
-        return this._id;
     }
 
     get address(): Address {
@@ -52,10 +55,16 @@ export default class Customer {
 
     validate() {
         if (this._name.length === 0) {
-            throw new Error('Name is required');
+            this.notification.addError({
+                context: 'customer',
+                message: 'Name is required',
+            });
         }
         if (this._id.length === 0) {
-            throw new Error('Id is required');
+            this.notification.addError({
+                context: 'customer',
+                message: 'Id is required',
+            });
         }
     }
 
