@@ -1,5 +1,5 @@
 import ProductAdmFacade from "../facade/product-adm.facade";
-import ProductRepository from "../repository/product.repository";
+import ProductRepository from "../repository/product-adm.repository";
 import AddProductUseCase from "../usecase/add-product/add-product.usecase";
 import CheckStockUseCase from "../usecase/check-stock/check-stock.usecase";
 

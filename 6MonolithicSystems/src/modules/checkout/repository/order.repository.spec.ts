@@ -1,151 +1,141 @@
-import { Sequelize } from 'sequelize-typescript';
+import { Sequelize } from "sequelize-typescript";
+import Address from "../../@shared/domain/value-object/address";
+import Id from "../../@shared/domain/value-object/id.value-object";
+import Client from "../domain/client.entity";
+import Order from "../domain/order.entity";
+import Product from "../domain/product.entity";
+import OrderModel from "./order.model";
+import OrderRepository from "./order.repository";
 
-import Id from '../../@shared/domain/value-object/id.value-object';
-import { Order } from '../domain/order.entity';
-import { Client } from '../domain/client.entity';
-import { Product } from '../domain/product.entity';
-
-import { OrderModel } from './order.model';
-import { OrderRepository } from './order.repository';
-import Address from '../../@shared/domain/value-object/address';
-
-const mockDate = new Date(2000, 1, 1);
-
-describe('OrderRepository test', () => {
+describe("Order Repository unit test", () => {
     let sequelize: Sequelize;
 
     beforeEach(async () => {
         sequelize = new Sequelize({
-            dialect: 'sqlite',
-            storage: ':memory:',
+            dialect: "sqlite",
+            storage: ":memory:",
             logging: false,
             sync: { force: true },
         });
 
-        sequelize.addModels([OrderModel]);
+        await sequelize.addModels([OrderModel]);
         await sequelize.sync();
-
-        jest.useFakeTimers('modern');
-        jest.setSystemTime(mockDate);
     });
 
     afterEach(async () => {
         await sequelize.close();
-        jest.useRealTimers();
     });
 
-    it('should add an order', async () => {
-        const product1 = new Product({
-            name: 'Product 1',
-            salesPrice: 100,
-            description: 'Description 1',
-        });
-
-        const product2 = new Product({
-            name: 'Product 2',
-            salesPrice: 200,
-            description: 'Description 2',
-        });
-
-        const address = new Address(
-            'Main Street',
-            '123',
-            'Next to the bank',
-            'New York',
-            'New York',
-            '122343404'
-        );
-
-        const orderClient = new Client({
-            id: new Id('1'),
-            name: 'John Doe',
-            email: 'john.doe@email.com',
-            address: address,
-        });
-
+    it("should add an order", async () => {
+        const repository = new OrderRepository();
         const order = new Order({
-            client: orderClient,
-            products: [product1, product2],
-            invoiceId: 'anyInvoiceId',
+            id: new Id("1"),
+            status: "pending",
+            invoiceId: "1i",
+            client: new Client({
+                id: new Id("1"),
+                name: "Client 1",
+                email: "a@a.com",
+                address: new Address(
+                    "Rua 123",
+                    "99",
+                    "Casa Verde",
+                    "Criciúma",
+                    "SC",
+                    "88888-888"
+                )
+            }),
+            products: [
+                new Product({
+                    id: new Id("1"),
+                    name: "Product 1",
+                    description: "Description 1",
+                    salesPrice: 100
+                }),
+                new Product({
+                    id: new Id("2"),
+                    name: "Product 2",
+                    description: "Description 2",
+                    salesPrice: 200
+                })
+            ]
         });
 
-        order.approved();
+        order.approveOrder();
 
-        const orderRepository = new OrderRepository();
-        const result = await orderRepository.addOrder(order);
+        await repository.addOrder(order);
 
-        expect(result).toStrictEqual(order);
-    });
+        const result = await repository.findOrder(order.id.id);
 
-    it('should find an order', async () => {
-        const address = new Address(
-            'Main Street',
-            '123',
-            'Next to the bank',
-            'New York',
-            'New York',
-            '122343404'
-        );
-
-        const orderData = {
-            id: '321',
-            createdAt: mockDate,
-            updatedAt: mockDate,
-            status: 'approved',
-            invoiceId: 'anyInvoiceId',
-            client: {
-                id: '1',
-                createdAt: mockDate,
-                updatedAt: mockDate,
-                name: 'John Doe',
-                email: 'john.doe@email.com',
-                address: address,
-            },
-            products: [
-                {
-                    id: '35',
-                    createdAt: mockDate,
-                    updatedAt: mockDate,
-                    name: 'Product 1',
-                    description: 'Description 1',
-                    salesPrice: 100,
-                },
-                {
-                    id: '63',
-                    createdAt: mockDate,
-                    updatedAt: mockDate,
-                    name: 'Product 2',
-                    description: 'Description 2',
-                    salesPrice: 200,
-                },
-            ],
-        };
-
-        await OrderModel.create(orderData);
-        const orderRepository = new OrderRepository();
-
-        const result = await orderRepository.findOrder('321');
-
-        expect(result.id.id).toEqual(orderData.id);
-        expect(result.status).toEqual(orderData.status);
-        expect(result.invoiceId).toEqual(orderData.invoiceId);
-
-        const clientResult = result.client;
-        expect(clientResult.id).toEqual(orderData.client.id);
-        expect(clientResult.name).toEqual(orderData.client.name);
-        expect(clientResult.email).toEqual(orderData.client.email);
-        expect(clientResult.address).toEqual(orderData.client.address);
-
-        expect(result.products.length).toEqual(orderData.products.length);
-
-        const firstProductResult = result.products[0];
-        expect(firstProductResult.id).toEqual(orderData.products[0].id);
-        expect(firstProductResult.name).toEqual(orderData.products[0].name);
-        expect(firstProductResult.salesPrice).toEqual(
-            orderData.products[0].salesPrice
-        );
-        expect(firstProductResult.description).toEqual(
-            orderData.products[0].description
-        );
-    });
-});
+        expect(result.id.id).toEqual(order.id.id);
+        expect(result.status).toEqual(order.status);
+        //@ts-expect-error
+        expect(result.client._id._id).toEqual(order.client.id.id);
+        //@ts-expect-error
+        expect(result.client._id._id).toEqual(order.client.id.id);
+        //@ts-expect-error
+        expect(result.client._name).toEqual(order.client.name);
+        //@ts-expect-error
+        expect(result.client._email).toEqual(order.client.email);
+        //@ts-expect-error
+        expect(result.client._address._street).toEqual(order.client.address.street);
+        //@ts-expect-error
+        expect(result.client._address._number).toEqual(order.client.address.number);
+        //@ts-expect-error
+        expect(result.client._address._complement).toEqual(order.client.address.complement);
+        //@ts-expect-error
+        expect(result.client._address._city).toEqual(order.client.address.city);
+        //@ts-expect-error
+        expect(result.client._address._state).toEqual(order.client.address.state);
+        //@ts-expect-error
+        expect(result.client._address._zipCode).toEqual(order.client.address.zipCode);
+        //@ts-expect-error
+        expect(result.products[0]._id._id).toEqual(order.products[0].id.id);
+        //@ts-expect-error
+        expect(result.products[0]._name).toEqual(order.products[0].name);
+        //@ts-expect-error
+        expect(result.products[0]._description).toEqual(order.products[0].description);
+        //@ts-expect-error
+        expect(result.products[0]._salesPrice).toEqual(order.products[0].salesPrice);
+        //@ts-expect-error
+        expect(result.products[1]._id._id).toEqual(order.products[1].id.id);
+        //@ts-expect-error
+        expect(result.products[1]._name).toEqual(order.products[1].name);
+        //@ts-expect-error
+        expect(result.products[1]._description).toEqual(order.products[1].description);
+        //@ts-expect-error
+        expect(result.products[1]._salesPrice).toEqual(order.products[1].salesPrice);
+        //@ts-expect-error
+        expect(result.client._name).toEqual(order.client.name);
+        //@ts-expect-error
+        expect(result.client._email).toEqual(order.client.email);
+        //@ts-expect-error
+        expect(result.client._address._street).toEqual(order.client.address.street);
+        //@ts-expect-error
+        expect(result.client._address._number).toEqual(order.client.address.number);
+        //@ts-expect-error
+        expect(result.client._address._complement).toEqual(order.client.address.complement);
+        //@ts-expect-error
+        expect(result.client._address._city).toEqual(order.client.address.city);
+        //@ts-expect-error
+        expect(result.client._address._state).toEqual(order.client.address.state);
+        //@ts-expect-error
+        expect(result.client._address._zipCode).toEqual(order.client.address.zipCode);
+        //@ts-expect-error
+        expect(result.products[0]._id._id).toEqual(order.products[0].id.id);
+        //@ts-expect-error
+        expect(result.products[0]._name).toEqual(order.products[0].name);
+        //@ts-expect-error
+        expect(result.products[0]._description).toEqual(order.products[0].description);
+        //@ts-expect-error
+        expect(result.products[0]._salesPrice).toEqual(order.products[0].salesPrice);
+        //@ts-expect-error
+        expect(result.products[1]._id._id).toEqual(order.products[1].id.id);
+        //@ts-expect-error
+        expect(result.products[1]._name).toEqual(order.products[1].name);
+        //@ts-expect-error
+        expect(result.products[1]._description).toEqual(order.products[1].description);
+        //@ts-expect-error
+        expect(result.products[1]._salesPrice).toEqual(order.products[1].salesPrice);
+    })
+})
